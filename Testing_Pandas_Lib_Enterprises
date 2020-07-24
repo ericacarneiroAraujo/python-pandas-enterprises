@@ -1,0 +1,73 @@
+import numpy as np
+import pandas as pd
+
+valor_1 = np.random.randint(20, size=10) # Anos na empresa
+valor_2 = np.random.random(size = 10) # Percentual de aumento anual
+sexo = ['F', 'F', 'F' ,'M' , 'M','F', 'F', 'F' ,'M' , 'M']
+idade = np.arange(25,35)
+
+df = pd.DataFrame({'Sexo': sexo, "Idade":idade, "Anos": valor_1, "Percentual": valor_2})
+
+#Adicionando uma nova coluna com Pandas insert
+salario = np.random.randint(low=2000, high=5000, size = 10)
+df.insert(4, 'Salário', salario)
+
+#Filtrando colunas com Pandas query
+equipe_a = df.query('Idade < 30')
+equipe_b = df.query('Idade >= 30')
+
+
+#Usando cumsum
+print("Equipe A: \n", equipe_a, "\nEquipe B:\n", equipe_b)
+df['salario_acumulativo_SEXO'] = df[['Salário','Sexo']].groupby('Sexo').cumsum()
+
+print(df)
+
+#Calculando a média de uma amostra do dataframe:
+
+def amostrando(dataframe, tamanho):
+  return dataframe.sample(n=tamanho).mean()
+
+
+print(amostrando(df, 5))
+
+#Suponhamos que todo aumento percentual que passar de 0.50 
+#será substituído por 0.50. ATUALIZAÇÃO DE COLUNAS!!!
+
+df['Percentual'] = df['Percentual'].where(df['Percentual']>=0.50, 0.50)
+
+print(df)
+
+woman = ['F']
+#Filtrando por categoria.
+#ISIN só aceita lista de valores.
+women = df[df.Sexo.isin(woman)]
+print("Lista de mulheres: \n", women)
+print(amostrando(women, 3))
+
+print("\n\nMulheres 3 primeiras:\n", women.iloc[:3, 2:4])
+print("Mulheres idade e salário: Amostra de 3\n", women.loc[:3, ['Idade', 'Salário']])
+
+#Testando o aumento do salário das mulheres usando pct_change(Pandas)
+aumento_salario_mulheres = women.Salário.pct_change()
+print("\n\nAumento de salários (mulheres): \n", aumento_salario_mulheres)
+
+women['Rank de Salários'] = women['Salário'].rank()
+print("\n\n\n", women)
+
+print(women.melt(id_vars=['Rank de Salários']))
+
+#Verificando quantas são os diferentes Anos de trabalho.
+print("\n\n\nDiferentes anos de trabalho:",df.Anos.nunique())
+print("\n\n\n\Resumo: ", df.nunique())
+
+#Tipos de dados de cada objeto
+
+df.infer_objects().dtypes
+print("\nMemória em bytes por coluna:\n", df.memory_usage())
+df.describe()
+
+df_merged = pd.merge(women, df, on = 'Salário')
+df_merged.select_dtypes(include='int64') #Seleciona apenas int64
+df_merged.select_dtypes(exclude='int64') #Seleciona apenas não int64
+df_merged.replace("F", "M") #Trocamos o sexo feminino por masculino
